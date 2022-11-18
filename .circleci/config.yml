@@ -1,0 +1,72 @@
+# See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+
+parameters:
+  GHA_Actor:
+    type: string
+    default: ""
+  GHA_Action:
+    type: string
+    default: ""
+  GHA_Event:
+    type: string
+    default: ""
+  GHA_Meta:
+    type: string
+    default: ""
+
+orbs:
+  gh: circleci/github-cli@2.1.1
+  rust: circleci/rust@1.6.0
+
+jobs:
+  test-and-package:
+    machine:
+      image: ubuntu-2004:current
+    resource_class: arm.medium
+    steps:
+      - checkout
+      - rust/install:
+          version: nightly
+      - rust/format:
+          nightly-toolchain: true
+      - rust/clippy
+      - rust/test
+      - rust/cargo-run:
+          package: --release -p package dist
+      - persist_to_workspace:
+          root: dist
+          paths:
+            - ptex*
+  release:
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - gh/setup
+      - attach_workspace:
+          at: dist
+      - run:
+          name: Upload ptex-linux-aarch64 to << pipeline.parameters.GHA_Meta >> Github Release
+          command: |
+            gh release upload << pipeline.parameters.GHA_Meta >> dist/ptex* --repo a-scie/ptex
+
+workflows:
+  ci:
+    jobs:
+      - test-and-package
+  release:
+    when: << pipeline.parameters.GHA_Action >>
+    jobs:
+      - test-and-package:
+          filters:
+            tags:
+              only: /^v.*/
+      - release:
+          filters:
+            tags:
+              only: /^v.*/
+          requires:
+            - package
+          context:
+            - GITHUB_CREDS
+

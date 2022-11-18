@@ -1,0 +1,27 @@
+[workspace]
+members = [
+  "package",
+]
+
+[package]
+name = "ptex"
+version = "0.1.0"
+edition = "2021"
+authors = [
+  "John Sirois <john.sirois@gmail.com>",
+]
+publish = false
+
+[profile.release]
+opt-level = "s"
+strip = "symbols"
+lto = "fat"
+codegen-units = 1
+
+[dependencies]
+curl = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+sha2 = "0.10"

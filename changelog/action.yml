@@ -1,0 +1,68 @@
+name: Prepare Changelog
+description: Prepares the changelog for a release.
+inputs:
+  changelog-file:
+    description: The path to the changelog markdown file to operate on.
+    required: true
+  version:
+    description: The version to prepare the changelog for.
+    required: true
+  level:
+    description: The level of the version headings in the changelog markdown.
+    required: false
+    default: 2
+outputs:
+  changelog-file:
+    description: The path to a changelog file with just the specified version's section.
+    value: ${{ steps.prepare-changelog.outputs.changelog-snippet-path }}
+runs:
+  using: composite
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      if: ${{ runner.tool_cache }}
+      with:
+        python-version: 3.11
+    - name: Calculate Tox Version
+      id: calculate-tox-version
+      shell: python
+      run: |
+        from __future__ import print_function
+        import os
+        try:
+            from ConfigParser import ConfigParser
+        except ImportError:
+            from configparser import ConfigParser
+        cp = ConfigParser()
+        cp.read("tox.ini")
+        tox_min_version = cp.get("tox", "minversion")
+        with open(os.environ["GITHUB_OUTPUT"], "a") as gh_output_fp:
+            print("tox-min-version={}".format(tox_min_version), file=gh_output_fp)
+    - name: Prepare Changelog
+      id: prepare-changelog
+      shell: bash
+      run: |
+        venv_dir="$(TMPDIR=${{ runner.temp }} mktemp -d)"
+        python -mvenv "${venv_dir}"
+        if [[ "$(uname -s)" =~ _NT ]]; then
+          # Git bash reports something like: MINGW64_NT-10.0-22621
+          source "${venv_dir}/Scripts/activate"
+
+        else
+          source "${venv_dir}/bin/activate"
+        fi
+        python -mpip install -U pip
+        pip install 'tox==${{ steps.calculate-tox-version.outputs.tox-min-version }}'
+        changelog_snippet_path="$(TMPDIR=${{ runner.temp }} mktemp)"
+        cat <<EOF > "${changelog_snippet_path}" 
+        ---
+
+        $(
+          tox -e changelog -qq -- \
+            --changelog ${{ inputs.changelog-file }} \
+            --level ${{ inputs.level }} \
+            ${{ inputs.version }}
+        )
+        EOF
+        echo "changelog-snippet-path=${changelog_snippet_path}" >> $GITHUB_OUTPUT
+

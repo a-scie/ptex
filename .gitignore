@@ -1,0 +1,8 @@
+# IntelliJ projects.
+.idea/
+*.iml
+*.ipr
+
+# Tox tool environments.
+/.tox/
+/.mypy_cache/

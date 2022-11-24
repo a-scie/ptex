@@ -33,13 +33,11 @@ runs:
       id: calculate-tox-version
       shell: python
       run: |
-        # coding=utf-8
-        # N.B.: An explicit encoding is needed for this inline script to work on Windows.
         import os
         from configparser import ConfigParser
 
 
-        tox_config = os.path.realpath(os.path.join("${{ github.action_path }}", "..", "tox.ini"))
+        tox_config = os.path.join("${{ github.action_path }}", "..", "tox.ini")
         cp = ConfigParser()
         with open(tox_config) as fp:
             cp.read_file(fp)

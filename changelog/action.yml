@@ -33,17 +33,17 @@ runs:
       id: calculate-tox-version
       shell: python
       run: |
-        from __future__ import print_function
         import os
-        try:
-            from ConfigParser import ConfigParser
-        except ImportError:
-            from configparser import ConfigParser
+        from configparser import ConfigParser
+
+
+        tox_config = os.path.realpath(os.path.join("${{ github.action_path }}", "..", "tox.ini"))
         cp = ConfigParser()
-        cp.read(os.path.join("${{ github.action_path }}", "..", "tox.ini"))
+        cp.read(tox_config)
         tox_min_version = cp.get("tox", "minversion")
         with open(os.environ["GITHUB_OUTPUT"], "a") as gh_output_fp:
-            print("tox-min-version={}".format(tox_min_version), file=gh_output_fp)
+            print(f"tox-min-version={tox_min_version}", file=gh_output_fp)
+            print(f"tox-config={tox_config}", file=gh_output_fp)
     - name: Prepare Changelog
       id: prepare-changelog
       shell: bash
@@ -64,7 +64,7 @@ runs:
         ---
 
         $(
-          tox -e changelog -qq -- \
+          tox -c ${{ steps.calculate-tox-version.outputs.tox-config }} -e changelog -qq -- \
             --changelog ${{ inputs.changelog-file }} \
             --level ${{ inputs.level }} \
             ${{ inputs.version }}

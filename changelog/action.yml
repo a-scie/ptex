@@ -24,7 +24,9 @@ runs:
   steps:
     - name: Setup Python
       uses: actions/setup-python@v4
-      if: ${{ inputs.setup-python }}
+      # N.B.: All inputs are strings despite what it may look like:
+      #   https://github.com/actions/runner/issues/1483
+      if: ${{ inputs.setup-python == 'true' }}
       with:
         python-version: 3.11
     - name: Calculate Tox Version

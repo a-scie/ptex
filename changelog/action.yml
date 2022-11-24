@@ -39,7 +39,8 @@ runs:
 
         tox_config = os.path.realpath(os.path.join("${{ github.action_path }}", "..", "tox.ini"))
         cp = ConfigParser()
-        cp.read(tox_config)
+        with open(tox_config) as fp:
+            cp.read_file(fp)
         tox_min_version = cp.get("tox", "minversion")
         with open(os.environ["GITHUB_OUTPUT"], "a") as gh_output_fp:
             print(f"tox-min-version={tox_min_version}", file=gh_output_fp)

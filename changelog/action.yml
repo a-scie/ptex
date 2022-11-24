@@ -30,7 +30,7 @@ runs:
       with:
         python-version: 3.11
     - name: Calculate Tox Version
-      id: calculate-tox-version
+      id: calculate-tox-info
       shell: python
       run: |
         import os
@@ -50,7 +50,9 @@ runs:
       id: prepare-changelog
       shell: bash
       run: |
-        venv_dir="$(TMPDIR=${{ runner.temp }} mktemp -d)"
+        # Handle Windows paths for bash, assume \ will only be present as Windows path separators.
+        runner_temp="${RUNNER_TEMP//\\//}"
+        venv_dir="$(TMPDIR="${runner_temp}" mktemp -d)"
         python -mvenv "${venv_dir}"
         if [[ "$(uname -s)" =~ _NT ]]; then
           # Git bash reports something like: MINGW64_NT-10.0-22621
@@ -60,13 +62,13 @@ runs:
           source "${venv_dir}/bin/activate"
         fi
         python -mpip install -U pip
-        pip install 'tox==${{ steps.calculate-tox-version.outputs.tox-min-version }}'
-        changelog_snippet_path="$(TMPDIR=${{ runner.temp }} mktemp)"
+        pip install 'tox==${{ steps.calculate-tox-info.outputs.tox-min-version }}'
+        changelog_snippet_path="$(TMPDIR="${runner_temp}" mktemp)"
         cat <<EOF > "${changelog_snippet_path}" 
         ---
 
         $(
-          tox -c ${{ steps.calculate-tox-version.outputs.tox-config }} -e changelog -qq -- \
+          tox -c ${{ steps.calculate-tox-info.outputs.tox-config }} -e changelog -qq -- \
             --changelog ${{ inputs.changelog-file }} \
             --level ${{ inputs.level }} \
             ${{ inputs.version }}

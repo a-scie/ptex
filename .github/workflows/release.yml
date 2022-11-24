@@ -56,10 +56,11 @@ jobs:
         run: cargo run --release -p package dist
       - name: Prepare Changelog
         id: prepare-changelog
-        uses: a-scie/actions/changelog@a03252662214384a575e501b7223334ea58b09ad
+        uses: a-scie/actions/changelog@f1e9a9581698b7fb651d67edfc53c648c68402c4
         with:
           changelog-file: ${{ github.workspace }}/CHANGES.md
           version: ${{ needs.determine-tag.outputs.release-version }}
+          setup-python: ${{ matrix.os != 'macos-13-aarch64' }}
       - name: Create ${{ needs.determine-tag.outputs.release-tag }} Release
         uses: softprops/action-gh-release@v1
         env:

@@ -11,6 +11,10 @@ inputs:
     description: The level of the version headings in the changelog markdown.
     required: false
     default: 2
+  setup-python:
+    description: Whether to setup a Python interpreter or just use an ambient one.
+    required: false
+    default: true
 outputs:
   changelog-file:
     description: The path to a changelog file with just the specified version's section.
@@ -20,7 +24,7 @@ runs:
   steps:
     - name: Setup Python
       uses: actions/setup-python@v4
-      if: ${{ runner.tool_cache }}
+      if: ${{ inputs.setup-python }}
       with:
         python-version: 3.11
     - name: Calculate Tox Version

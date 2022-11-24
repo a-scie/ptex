@@ -37,7 +37,8 @@ runs:
         from configparser import ConfigParser
 
 
-        tox_config = os.path.join("${{ github.action_path }}", "..", "tox.ini")
+        # N.B.: A raw string is critical to support literal `\` in Windows paths.
+        tox_config = os.path.normpath(os.path.join(r"${{ github.action_path }}", "..", "tox.ini"))
         cp = ConfigParser()
         with open(tox_config) as fp:
             cp.read_file(fp)

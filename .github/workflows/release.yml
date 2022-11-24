@@ -56,7 +56,7 @@ jobs:
         run: cargo run --release -p package dist
       - name: Prepare Changelog
         id: prepare-changelog
-        uses: a-scie/actions/changelog@v1.2
+        uses: a-scie/actions/changelog@v1.3
         with:
           changelog-file: ${{ github.workspace }}/CHANGES.md
           version: ${{ needs.determine-tag.outputs.release-version }}

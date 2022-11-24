@@ -179,7 +179,7 @@ dependencies = [
 
 [[package]]
 name = "ptex"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "curl",
  "serde",

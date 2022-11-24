@@ -54,6 +54,12 @@ jobs:
           ref: ${{ needs.determine-tag.outputs.release-tag }}
       - name: Package ptex ${{ needs.determine-tag.outputs.release-tag }} binary
         run: cargo run --release -p package dist
+      - name: Prepare Changelog
+        id: prepare-changelog
+        uses: a-scie/actions/changelog@125db6fab750fdbe550273c2d6fdb6deafec8cfc
+        with:
+          changelog-file: ${{ github.workspace }}/CHANGES.md
+          version: ${{ needs.determine-tag.outputs.release-version }}
       - name: Create ${{ needs.determine-tag.outputs.release-tag }} Release
         uses: softprops/action-gh-release@v1
         env:
@@ -61,12 +67,7 @@ jobs:
         with:
           tag_name: ${{ needs.determine-tag.outputs.release-tag }}
           name: ptex ${{ needs.determine-tag.outputs.release-version }}
-          body: |
-            ---
-
-            ## ${{ needs.determine-tag.outputs.release-version }}
-
-            TODO: Add CHANGES.md entries.
+          body_path: ${{ steps.prepare-changelog.outputs.changelog-file }}
           draft: false
           prerelease: false
           files: dist/ptex*

@@ -36,10 +36,10 @@ impl<'a, W: Write> FetchHandler<'a, W> {
 
 impl<'a, W: Write> Handler for FetchHandler<'a, W> {
     fn write(&mut self, data: &[u8]) -> Result<usize, WriteError> {
-        Ok(self
-            .output
-            .write(data)
-            .expect("Failed to write data to output"))
+        self.output
+            .write_all(data)
+            .expect("Failed to write data to output");
+        Ok(data.len())
     }
 
     fn progress(&mut self, dltotal: f64, dlnow: f64, _ultotal: f64, _ulnow: f64) -> bool {
@@ -47,7 +47,10 @@ impl<'a, W: Write> Handler for FetchHandler<'a, W> {
             eprint!(
                 "\rDownloaded {dlnow} of {total} from {url}",
                 total = if dltotal > 0.0 {
-                    dltotal.to_string()
+                    format!(
+                        "{dltotal} bytes ({percent:>3.0}%)",
+                        percent = dlnow / dltotal * 100.0
+                    )
                 } else {
                     "unknown".to_string()
                 },

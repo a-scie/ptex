@@ -32,7 +32,9 @@ features = [
   "ssl",
   "static-curl",
   "static-ssl",
-  "zlib-ng-compat"
+  # TODO(John Sirois): Enable once the M2 runner has CMake installed:
+  #  https://github.com/a-scie/ptex/issues/12
+  #"zlib-ng-compat"
 ]
 
 [dev-dependencies]

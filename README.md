@@ -103,6 +103,12 @@ user    0m0.018s
 sys     0m0.000s
 ```
 
+Since the CPython distribution was already downloaded and extracted (to
+`~/.nce/6c8db44ae0e18e320320bbaaafd2d69cde8bfea171ae2d651b7993d1396260b7` in this case) it is not
+fetched again, but instead ready for use immediately. Any other scie that uses this same CPython
+distribution with the same hash, whether it uses ptex or not, will also enjoy this same cache-hit
+and speedy run.
+
 For comparison, the equivalent self-contained scie with a pre-downloaded and embedded CPython
 distribution is ~28M:
 ```json

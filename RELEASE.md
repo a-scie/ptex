@@ -41,3 +41,4 @@ $ git push --tags https://github.com/a-scie/ptex HEAD:main
 The release is automated and will create a GitHub Release page at
 [https://github.com/a-scie/ptex/releases/tag/v&lt;version&gt;](
 https://github.com/a-scie/ptex/releases) with binaries for Linux, Mac and Windows.
+

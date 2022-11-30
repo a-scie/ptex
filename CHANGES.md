@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.1.15
+
+This release completes as much static linking  as possible on Linux by
+bringing zlib into the fold.
+
 ## 0.1.14
 
 This release fixes a bug downloading large files and isolates the ptex

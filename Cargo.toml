@@ -5,7 +5,7 @@ members = [
 
 [package]
 name = "ptex"
-version = "0.1.14"
+version = "0.1.15"
 edition = "2021"
 authors = [
   "John Sirois <john.sirois@gmail.com>",
@@ -32,9 +32,7 @@ features = [
   "ssl",
   "static-curl",
   "static-ssl",
-  # TODO(John Sirois): Enable once the M2 runner has CMake installed:
-  #  https://github.com/a-scie/ptex/issues/12
-  #"zlib-ng-compat"
+  "zlib-ng-compat"
 ]
 
 [dev-dependencies]

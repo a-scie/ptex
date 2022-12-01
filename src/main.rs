@@ -3,6 +3,7 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
 use curl::easy::{Easy2, Handler, NetRc, WriteError};
+use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -18,23 +19,38 @@ impl Config {
     }
 }
 
-struct FetchHandler<'a, W: Write> {
-    url: &'a str,
+struct FetchHandler<W: Write> {
     output: W,
-    last_seen: f64,
+    progress: ProgressBar,
 }
 
-impl<'a, W: Write> FetchHandler<'a, W> {
-    fn new(url: &'a str, output: W) -> Self {
-        Self {
-            url,
-            output,
-            last_seen: 0.0,
-        }
+#[cfg(target_family = "windows")]
+const NEWLINE: &str = "\r\n";
+
+#[cfg(target_family = "unix")]
+const NEWLINE: &str = "\n";
+
+fn write(state: &ProgressState, w: &mut dyn std::fmt::Write) {
+    write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
+}
+
+impl<W: Write> FetchHandler<W> {
+    fn new(url: &str, output: W) -> Self {
+        let progress = ProgressBar::new(0);
+        progress.set_prefix(format!("Downloading {url}...{NEWLINE}"));
+        progress.set_style(
+            ProgressStyle::with_template(
+                "{prefix}[{elapsed_precise}] [{bar:30}] {bytes}/{total_bytes} (eta: {eta})",
+            )
+            .unwrap()
+            .with_key("eta", write)
+            .progress_chars("#>-"),
+        );
+        Self { output, progress }
     }
 }
 
-impl<'a, W: Write> Handler for FetchHandler<'a, W> {
+impl<W: Write> Handler for FetchHandler<W> {
     fn write(&mut self, data: &[u8]) -> Result<usize, WriteError> {
         self.output
             .write_all(data)
@@ -43,24 +59,10 @@ impl<'a, W: Write> Handler for FetchHandler<'a, W> {
     }
 
     fn progress(&mut self, dltotal: f64, dlnow: f64, _ultotal: f64, _ulnow: f64) -> bool {
-        if dlnow != self.last_seen {
-            eprint!(
-                "\rDownloaded {dlnow} of {total} from {url}",
-                total = if dltotal > 0.0 {
-                    format!(
-                        "{dltotal} bytes ({percent:>3.0}%)",
-                        percent = dlnow / dltotal * 100.0
-                    )
-                } else {
-                    "unknown".to_string()
-                },
-                url = self.url,
-            );
-            self.last_seen = dlnow;
-            if dlnow == dltotal {
-                eprintln!()
-            }
+        if dltotal > 0.0 {
+            self.progress.set_length(dltotal as u64)
         }
+        self.progress.set_position(dlnow as u64);
         true
     }
 }

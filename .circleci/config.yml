@@ -20,7 +20,7 @@ orbs:
   rust: circleci/rust@1.6.0
 
 jobs:
-  test-and-package:
+  test:
     machine:
       image: ubuntu-2004:current
     resource_class: arm.medium
@@ -30,10 +30,24 @@ jobs:
           version: nightly
       - rust/format:
           nightly-toolchain: true
+      - rust/install
       - rust/clippy
       - rust/test
-      - rust/cargo-run:
-          package: --release -p package dist
+  package:
+    machine:
+      image: ubuntu-2004:current
+    resource_class: arm.medium
+    steps:
+      - checkout
+      - run:
+          name: Package ptex
+          command: |
+            mkdir dist
+            docker run --rm \
+              -v $PWD:/code \
+              -w /code \
+              rust:1.65.0-alpine3.15 \
+                sh -c 'apk add cmake make musl-dev perl && cargo run -p package -- dist'
       - persist_to_workspace:
           root: dist
           paths:
@@ -53,11 +67,16 @@ jobs:
 workflows:
   ci:
     jobs:
-      - test-and-package
+      - test
+      - package
   release:
     when: << pipeline.parameters.GHA_Action >>
     jobs:
-      - test-and-package:
+      - test:
+          filters:
+            tags:
+              only: /^v.*/
+      - package:
           filters:
             tags:
               only: /^v.*/
@@ -66,7 +85,8 @@ workflows:
             tags:
               only: /^v.*/
           requires:
-            - test-and-package
+            - test
+            - package
           context:
             - GITHUB_CREDS
 

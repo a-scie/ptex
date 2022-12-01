@@ -1,9 +1,15 @@
 # Release Notes
 
+## 0.2.0
+
+This release brings fully static binaries for Linux with zero runtime
+linkage by switching the Linux targets to use musl. As part of this
+switch, the Rust toolchain used is stabilized to stable / 1.65.0.
+
 ## 0.1.15
 
-This release completes as much static linking  as possible on Linux by
-bringing zlib into the fold.
+This release completes as much static linking as possible on Linux using
+gnu by bringing zlib into the fold.
 
 ## 0.1.14
 

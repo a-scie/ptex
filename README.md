@@ -19,6 +19,7 @@ storage space on your servers and the end user's machine as well as bandwidth tr
 application scie between them. The `ptex` binary can help you do this.
 
 ## How `ptex` works
+
 The [`scie-jump`](
 https://github.com/a-scie/jump/blob/main/docs/packaging.md#optional-fields) supports assigning a
 `source` binding command to any file entry in the lift manifest. That source binding command then
@@ -137,3 +138,13 @@ distribution is ~28M:
   }
 }
 ```
+
+## Building `ptex`
+
+The `ptex` binary is [released](https://github.com/a-scie/ptex/releases) for Linux (x86_64 &
+aarch64), macOS (x86_64 & aarch64) and Windows (x86_64). If you'd like to build your own copy,
+you'll need the [Rust installed](https://rustup.rs/) at which point you can run
+`cargo run -p package` and a binary for your current machine will be built in `dist/` along with a
+sha256 checksum file. For more build options, you can run `cargo run -p package -- --help`. On some
+systems, builds will require `cmake`, `make` and `perl` in order to build various `*-sys` crates. If
+you're  missing these, the build failures will point you in the right direction with some reading.

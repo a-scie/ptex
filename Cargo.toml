@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "package",
+    "package",
 ]
 
 [package]
@@ -8,7 +8,7 @@ name = "ptex"
 version = "0.2.0"
 edition = "2021"
 authors = [
-  "John Sirois <john.sirois@gmail.com>",
+    "John Sirois <john.sirois@gmail.com>",
 ]
 publish = false
 
@@ -27,13 +27,13 @@ serde_json = "1.0"
 version = "0.4"
 default-features = false
 features = [
-  "http2",
-  "ntlm",
-  "protocol-ftp",
-  "ssl",
-  "static-curl",
-  "static-ssl",
-  "zlib-ng-compat"
+    "http2",
+    "ntlm",
+    "protocol-ftp",
+    "ssl",
+    "static-curl",
+    "static-ssl",
+    "zlib-ng-compat"
 ]
 
 [dev-dependencies]

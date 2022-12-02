@@ -131,7 +131,9 @@ fn main() -> ExitResult {
             ),
     )?;
 
-    let src = output_bin_dir.join(BINARY);
+    let src = output_bin_dir
+        .join(BINARY)
+        .with_extension(env::consts::EXE_EXTENSION);
     let mut reader = std::fs::File::open(&src).map_err(|e| {
         Code::FAILURE.with_message(format!(
             "Failed to open {src} for hashing: {e}",

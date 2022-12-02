@@ -5,7 +5,7 @@
 ### Version Bump and Changelog
 
 1. Bump the version in [`Cargo.toml`](Cargo.toml).
-2. Run `cargo run --release -p package .` to update [`Cargo.lock`](Cargo.lock) with the new version
+2. Run `cargo run -p package` to update [`Cargo.lock`](Cargo.lock) with the new version
    and as a sanity check on the state of the project.
 3. Update [`CHANGES.md`](CHANGES.md) with any changes that are likely to be useful to consumers.
 4. Open a PR with these changes and land it on https://github.com/a-scie/ptex main.

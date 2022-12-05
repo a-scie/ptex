@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.3.0
+
+This release adds support for direct use by passing a single URL to
+fetch and improves command line help to fully explain both the existing
+scie binding file source mode and the new direct URL mode.
+
 ## 0.2.0
 
 This release brings fully static binaries for Linux with zero runtime

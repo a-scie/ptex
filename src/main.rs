@@ -101,7 +101,7 @@ fn fetch<W: Write>(url: &str, output: W) -> Result<()> {
         .with_context(|| format!("Failed to fetch {url}"))
 }
 
-fn usage(exit_code: i32) -> ! {
+fn usage(exit_code: i32, program_name: Option<String>) -> ! {
     println!(
         r#"Usage:
     {bin_name} -V|--version
@@ -184,7 +184,7 @@ fn usage(exit_code: i32) -> ! {
 
     -O  Write output to a file named as the remote file
 "#,
-        bin_name = env!("CARGO_BIN_NAME")
+        bin_name = program_name.unwrap_or_else(|| env!("CARGO_BIN_NAME").to_string())
     );
     std::process::exit(exit_code);
 }
@@ -221,19 +221,24 @@ fn open_remote_filename(url: &str) -> Result<impl Write> {
 }
 
 fn main() {
+    let mut program_name = None;
     let mut save_as_remote_name = false;
     let mut args = vec![];
-    for arg in env::args().skip(1) {
-        match arg.as_str() {
-            "-h" | "--help" => {
-                usage(0);
+    for (index, arg) in env::args().enumerate() {
+        if index == 0 {
+            program_name = Some(arg)
+        } else {
+            match arg.as_str() {
+                "-h" | "--help" => {
+                    usage(0, program_name);
+                }
+                "-V" | "--version" => {
+                    println!(env!("CARGO_PKG_VERSION"));
+                    std::process::exit(0);
+                }
+                "-O" | "--remote-name" => save_as_remote_name = true,
+                _ => args.push(arg),
             }
-            "-V" | "--version" => {
-                println!(env!("CARGO_PKG_VERSION"));
-                std::process::exit(0);
-            }
-            "-O" | "--remote-name" => save_as_remote_name = true,
-            _ => args.push(arg),
         }
     }
 
@@ -253,7 +258,7 @@ fn main() {
             }
         }
         _ => {
-            usage(1);
+            usage(1, program_name);
         }
     }
 }

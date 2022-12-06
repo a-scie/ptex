@@ -6,10 +6,11 @@ use std::env;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use curl::easy::{Easy2, Handler, NetRc, WriteError};
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use serde::Deserialize;
+use url::Url;
 
 #[derive(Deserialize)]
 struct Config {
@@ -100,12 +101,13 @@ fn fetch<W: Write>(url: &str, output: W) -> Result<()> {
         .with_context(|| format!("Failed to fetch {url}"))
 }
 
-fn usage() -> Result<()> {
-    let current_exe = env::current_exe().context("Failed to determine current executable")?;
-    eprintln!(
+fn usage(exit_code: i32, program_name: Option<String>) -> ! {
+    println!(
         r#"Usage:
-    {current_exe} [lift manifest path] [file name]
-    {current_exe} [URL]
+    {bin_name} -V|--version
+    {bin_name} -h|--help
+    {bin_name} [lift manifest path] [file name]
+    {bin_name} (-O|--remote-name) [URL]
 
     The `ptex` binary is a statically compiled URL fetcher based on
     libcurl. It supports the HTTP protocol up through HTTP/2, the FTP
@@ -114,7 +116,15 @@ fn usage() -> Result<()> {
     exits with a non-zero status if there was a network or protocol
     error.
 
-{current_exe} [lift manifest path] [file name]
+{bin_name} -V|--version
+
+    Print the ptex version.
+
+{bin_name} -h|--help
+
+    Display this help.
+
+{bin_name} [lift manifest path] [file name]
 
     For use in a scie file source binding. The first argument is the
     path to the scie lift manifest and the second argument is the file
@@ -166,14 +176,17 @@ fn usage() -> Result<()> {
     See more documentation on scie packaging configuration here:
      https://github.com/a-scie/jump/blob/main/docs/packaging.md
 
-{current_exe} [URL]
+{bin_name} (-O|--remote-name) [URL]
 
     For use as a fully self-contained curl-like binary. The given URL is
-    fetched and the response is streamed to stdout.
+    fetched and the response is streamed to a file if -O or
+    --remote-name was specified and otherwise to stdout.
+
+    -O  Write output to a file named as the remote file
 "#,
-        current_exe = current_exe.display()
+        bin_name = program_name.unwrap_or_else(|| env!("CARGO_BIN_NAME").to_string())
     );
-    Ok(())
+    std::process::exit(exit_code);
 }
 
 trait OrExit<T> {
@@ -192,37 +205,61 @@ impl<T> OrExit<T> for Result<T> {
     }
 }
 
+fn open_remote_filename(url: &str) -> Result<impl Write> {
+    let parsed_url = Url::parse(url)?;
+    let remote_path = PathBuf::from(parsed_url.path());
+    let remote_file_name = remote_path
+        .file_name()
+        .ok_or_else(|| anyhow!("Could not determine the remote file name of {url}"))?;
+    let local_path = env::current_dir()?.join(remote_file_name);
+    std::fs::File::create(&local_path).with_context(|| {
+        format!(
+            "Failed to open {local_path} for streaming {url} to.",
+            local_path = local_path.display()
+        )
+    })
+}
+
 fn main() {
-    if env::args().len() == 3 {
-        let lift_manifest_path = PathBuf::from(
-            env::args()
-                .nth(1)
-                .expect("We checked there were 3 args just above"),
-        );
-        let file_path = PathBuf::from(
-            env::args()
-                .nth(2)
-                .expect("We checked there were 3 args just above"),
-        );
+    let mut program_name = None;
+    let mut save_as_remote_name = false;
+    let mut args = vec![];
+    for (index, arg) in env::args().enumerate() {
+        if index == 0 {
+            program_name = Some(arg)
+        } else {
+            match arg.as_str() {
+                "-h" | "--help" => {
+                    usage(0, program_name);
+                }
+                "-V" | "--version" => {
+                    println!(env!("CARGO_PKG_VERSION"));
+                    std::process::exit(0);
+                }
+                "-O" | "--remote-name" => save_as_remote_name = true,
+                _ => args.push(arg),
+            }
+        }
+    }
 
-        let lift_manifest = std::fs::File::open(&lift_manifest_path)
-            .with_context(|| {
-                format!(
-                    "ailed to open lift manifest at {lift_manifest}",
-                    lift_manifest = lift_manifest_path.display()
-                )
-            })
-            .or_exit();
-        fetch_manifest(&lift_manifest, &file_path, std::io::stdout()).or_exit()
-    } else if env::args().len() == 2 {
-        let url = env::args()
-            .nth(1)
-            .expect("We checked there were 2 args just above");
-
-        fetch(url.as_str(), std::io::stdout()).or_exit()
-    } else {
-        usage().or_exit();
-        std::process::exit(1);
+    match &args[..] {
+        [lift_manifest_path, file_path] if !save_as_remote_name => {
+            let lift_manifest = std::fs::File::open(lift_manifest_path)
+                .with_context(|| format!("Failed to open lift manifest at {lift_manifest_path}"))
+                .or_exit();
+            fetch_manifest(&lift_manifest, &PathBuf::from(file_path), std::io::stdout()).or_exit()
+        }
+        [url] => {
+            if save_as_remote_name {
+                let file = open_remote_filename(url).or_exit();
+                fetch(url, file).or_exit();
+            } else {
+                fetch(url, std::io::stdout()).or_exit();
+            }
+        }
+        _ => {
+            usage(1, program_name);
+        }
     }
 }
 

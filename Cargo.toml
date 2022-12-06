@@ -5,7 +5,7 @@ members = [
 
 [package]
 name = "ptex"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 authors = [
     "John Sirois <john.sirois@gmail.com>",
@@ -23,6 +23,7 @@ anyhow = "1.0"
 indicatif = "0.17"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+url = "2.3"
 
 [dependencies.curl]
 version = "0.4"
@@ -39,3 +40,8 @@ features = [
 
 [dev-dependencies]
 sha2 = "0.10"
+tempfile = "3.3"
+
+[[test]]
+name = "cli"
+path = "tests/cli.rs"

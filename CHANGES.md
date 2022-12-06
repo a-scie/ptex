@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.4.0
+
+This release adds support for saving fetched content to a file by
+specifying the `-O` or `--remote-name` option when in direct URL mode.
+The ptex version can also e queried with `-V` or `--version`.
+
 ## 0.3.0
 
 This release adds support for direct use by passing a single URL to

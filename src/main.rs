@@ -245,7 +245,7 @@ fn main() {
             fetch_manifest(&lift_manifest, &PathBuf::from(file_path), std::io::stdout()).or_exit()
         }
         [url] => {
-            if save_as_remote_name {-
+            if save_as_remote_name {
                 let file = open_remote_filename(url).or_exit();
                 fetch(url, file).or_exit();
             } else {

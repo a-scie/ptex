@@ -28,6 +28,7 @@ impl Config {
 struct FetchHandler<W: Write> {
     output: W,
     progress: ProgressBar,
+    show_headers: bool,
 }
 
 #[cfg(target_family = "windows")]
@@ -41,7 +42,7 @@ fn write(state: &ProgressState, w: &mut dyn std::fmt::Write) {
 }
 
 impl<W: Write> FetchHandler<W> {
-    fn new(url: &str, output: W) -> Self {
+    fn new(url: &str, output: W, show_headers: bool) -> Self {
         let progress = ProgressBar::new(0);
         progress.set_prefix(format!("Downloading {url}...{NEWLINE}"));
         progress.set_style(
@@ -52,7 +53,11 @@ impl<W: Write> FetchHandler<W> {
             .with_key("eta", write)
             .progress_chars("#>-"),
         );
-        Self { output, progress }
+        Self {
+            output,
+            progress,
+            show_headers,
+        }
     }
 }
 
@@ -64,6 +69,15 @@ impl<W: Write> Handler for FetchHandler<W> {
         Ok(data.len())
     }
 
+    fn header(&mut self, data: &[u8]) -> bool {
+        if self.show_headers {
+            if let Ok(header) = std::str::from_utf8(data) {
+                eprint!("{header}");
+            }
+        }
+        true
+    }
+
     fn progress(&mut self, dltotal: f64, dlnow: f64, _ultotal: f64, _ulnow: f64) -> bool {
         if dltotal > 0.0 {
             self.progress.set_length(dltotal as u64)
@@ -73,7 +87,12 @@ impl<W: Write> Handler for FetchHandler<W> {
     }
 }
 
-fn fetch_manifest<R: Read, W: Write>(lift_manifest: R, file_path: &Path, output: W) -> Result<()> {
+fn fetch_manifest<R: Read, W: Write>(
+    lift_manifest: R,
+    file_path: &Path,
+    output: W,
+    show_headers: bool,
+) -> Result<()> {
     let config = Config::parse(lift_manifest)?;
     let url = config.ptex.get(file_path).with_context(|| {
         format!(
@@ -81,12 +100,12 @@ fn fetch_manifest<R: Read, W: Write>(lift_manifest: R, file_path: &Path, output:
             path = file_path.display()
         )
     })?;
-    fetch(url, output)
+    fetch(url, output, show_headers)
         .with_context(|| format!("Failed to source file {file}", file = file_path.display()))
 }
 
-fn fetch<W: Write>(url: &str, output: W) -> Result<()> {
-    let mut easy = Easy2::new(FetchHandler::new(url, output));
+fn fetch<W: Write>(url: &str, output: W, show_headers: bool) -> Result<()> {
+    let mut easy = Easy2::new(FetchHandler::new(url, output, show_headers));
     easy.follow_location(true)
         .context("Failed to configure re-direct following")?;
     easy.fail_on_error(true)
@@ -97,6 +116,8 @@ fn fetch<W: Write>(url: &str, output: W) -> Result<()> {
         .context("Failed to configure URL to fetch from as {url}")?;
     easy.progress(true)
         .context("Failed to enable progress meter")?;
+    easy.useragent(format!("ptex/{version}", version = env!("CARGO_PKG_VERSION")).as_str())
+        .context("Failed to set User-Agent")?;
     easy.perform()
         .with_context(|| format!("Failed to fetch {url}"))
 }
@@ -106,8 +127,8 @@ fn usage(exit_code: i32, program_name: Option<String>) -> ! {
         r#"Usage:
     {bin_name} -V|--version
     {bin_name} -h|--help
-    {bin_name} [lift manifest path] [file name]
-    {bin_name} (-O|--remote-name) [URL]
+    {bin_name} (-D|--dump-header) [lift manifest path] [file name]
+    {bin_name} (-O|--remote-name) (-D|--dump-header) [URL]
 
     The `ptex` binary is a statically compiled URL fetcher based on
     libcurl. It supports the HTTP protocol up through HTTP/2, the FTP
@@ -124,13 +145,16 @@ fn usage(exit_code: i32, program_name: Option<String>) -> ! {
 
     Display this help.
 
-{bin_name} [lift manifest path] [file name]
+{bin_name} (-D|--dump-header) [lift manifest path] [file name]
 
     For use in a scie file source binding. The first argument is the
     path to the scie lift manifest and the second argument is the file
     name to source. You configure this use in a scie by fully specifying
     file metadata, including size, hash and type and setting the source
     to the name of a binding command that uses `ptex` as its executable.
+
+    -D|--dump-header  Dump the headers received to stderr. Can also be
+                      set via non-empty PTEX_DUMP_HEADERS env var.
 
     The relevant parts of the lift manifest look like so:
 
@@ -176,13 +200,15 @@ fn usage(exit_code: i32, program_name: Option<String>) -> ! {
     See more documentation on scie packaging configuration here:
      https://github.com/a-scie/jump/blob/main/docs/packaging.md
 
-{bin_name} (-O|--remote-name) [URL]
+{bin_name} (-O|--remote-name) (-D|--dump-header) [URL]
 
     For use as a fully self-contained curl-like binary. The given URL is
     fetched and the response is streamed to a file if -O or
     --remote-name was specified and otherwise to stdout.
 
-    -O  Write output to a file named as the remote file
+    -O|--remote-name  Write output to a file named as the remote file.
+    -D|--dump-header  Dump the headers received to stderr. Can also be
+                      set via non-empty PTEX_DUMP_HEADERS env var.
 "#,
         bin_name = program_name.unwrap_or_else(|| env!("CARGO_BIN_NAME").to_string())
     );
@@ -223,6 +249,7 @@ fn open_remote_filename(url: &str) -> Result<impl Write> {
 fn main() {
     let mut program_name = None;
     let mut save_as_remote_name = false;
+    let mut show_headers = false;
     let mut args = vec![];
     for (index, arg) in env::args().enumerate() {
         if index == 0 {
@@ -237,7 +264,15 @@ fn main() {
                     std::process::exit(0);
                 }
                 "-O" | "--remote-name" => save_as_remote_name = true,
+                "-D" | "--dump-header" => show_headers = true,
                 _ => args.push(arg),
+            }
+        }
+    }
+    if !show_headers {
+        if let Some(value) = env::var_os("PTEX_DUMP_HEADERS") {
+            if !value.is_empty() {
+                show_headers = true;
             }
         }
     }
@@ -247,14 +282,20 @@ fn main() {
             let lift_manifest = std::fs::File::open(lift_manifest_path)
                 .with_context(|| format!("Failed to open lift manifest at {lift_manifest_path}"))
                 .or_exit();
-            fetch_manifest(&lift_manifest, &PathBuf::from(file_path), std::io::stdout()).or_exit()
+            fetch_manifest(
+                &lift_manifest,
+                &PathBuf::from(file_path),
+                std::io::stdout(),
+                show_headers,
+            )
+            .or_exit()
         }
         [url] => {
             if save_as_remote_name {
                 let file = open_remote_filename(url).or_exit();
-                fetch(url, file).or_exit();
+                fetch(url, file, show_headers).or_exit();
             } else {
-                fetch(url, std::io::stdout()).or_exit();
+                fetch(url, std::io::stdout(), show_headers).or_exit();
             }
         }
         _ => {
@@ -293,14 +334,20 @@ mod tests {
 "#
         );
         let mut buffer: Vec<u8> = Vec::new();
-        super::fetch_manifest(Cursor::new(manifest), Path::new("scie-jump"), &mut buffer).unwrap();
+        super::fetch_manifest(
+            Cursor::new(manifest),
+            Path::new("scie-jump"),
+            &mut buffer,
+            true,
+        )
+        .unwrap();
         assert_fetched_buffer(buffer.as_slice());
     }
 
     #[test]
     fn fetch() {
         let mut buffer: Vec<u8> = Vec::new();
-        super::fetch(URL, &mut buffer).unwrap();
+        super::fetch(URL, &mut buffer, false).unwrap();
         assert_fetched_buffer(buffer.as_slice());
     }
 }

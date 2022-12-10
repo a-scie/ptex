@@ -1,5 +1,12 @@
 # Release Notes
 
+## 0.5.0
+
+This release begins sending a User-Agent header of `ptex/<version>` and
+also adds support for dumping received headers to stderr via either the
+`-D|--dump-header` switches or a non-empty `PTEX_DUMP_HEADERS`
+environment variable.
+
 ## 0.4.0
 
 This release adds support for saving fetched content to a file by

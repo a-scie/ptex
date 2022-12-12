@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.6.0
+
+This release add support for passing custom headers to the server via
+one or more `-H|--header` arguments.
+
 ## 0.5.0
 
 This release begins sending a User-Agent header of `ptex/<version>` and

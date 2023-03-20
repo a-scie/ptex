@@ -413,9 +413,9 @@ checksum = "15eb2c6e362923af47e13c23ca5afb859e83d54452c55b0b9ac763b8f7c1ac16"
 
 [[package]]
 name = "proc-exit"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2d778539881515d37cd91925d169f4a351120c5a1b44fce2b7c462b0d7f4ec6"
+checksum = "dbd05acff31c8b626109e8e1db042b9bddb2b3ffba01ead93d15b78517a282ca"
 
 [[package]]
 name = "proc-macro-error"

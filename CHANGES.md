@@ -1,5 +1,14 @@
 # Release Notes
 
+## 0.7.0
+
+This release updates various dependencies, most notably updating from
+curl 7.86.0 (October 26, 2022) to 8.0.1 (March 20, 2023).
+See:
++ https://curl.se/changes.html
++ https://curl.se/docs/releases.html
++ https://curl.se/docs/vulnerabilities.html
+
 ## 0.6.0
 
 This release add support for passing custom headers to the server via

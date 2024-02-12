@@ -173,8 +173,7 @@ dependencies = [
 [[package]]
 name = "curl"
 version = "0.4.45"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8e5123ab8c31200ce725939049ecd4a090b242608f24048131dedf9dd195aed"
+source = "git+https://github.com/a-scie/curl-rust?rev=9f8c905174d1d3afa675d852f01818f76d21106e#9f8c905174d1d3afa675d852f01818f76d21106e"
 dependencies = [
  "curl-sys",
  "libc",
@@ -188,8 +187,7 @@ dependencies = [
 [[package]]
 name = "curl-sys"
 version = "0.4.72+curl-8.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29cbdc8314c447d11e8fd156dcdd031d9e02a7a976163e396b548c03153bc9ea"
+source = "git+https://github.com/a-scie/curl-rust?rev=9f8c905174d1d3afa675d852f01818f76d21106e#9f8c905174d1d3afa675d852f01818f76d21106e"
 dependencies = [
  "cc",
  "libc",

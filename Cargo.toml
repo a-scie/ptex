@@ -26,6 +26,10 @@ serde_json = "1.0"
 url = "2.5"
 
 [dependencies.curl]
+# TODO(John Sirois): XXX: Update with PR URL once CI goes green as proof of fix.
+git = "https://github.com/a-scie/curl-rust"
+rev = "9f8c905174d1d3afa675d852f01818f76d21106e"
+
 version = "0.4"
 default-features = false
 features = [

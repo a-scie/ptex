@@ -1,5 +1,14 @@
 # Release Notes
 
+## 0.7.1
+
+This release updates various dependencies, most notably updating from
+curl 8.0.1 (March 20, 2023) to 8.6.0 (January 31, 2024).
+See:
++ https://curl.se/changes.html
++ https://curl.se/docs/releases.html
++ https://curl.se/docs/vulnerabilities.html
+
 ## 0.7.0
 
 This release updates various dependencies, most notably updating from

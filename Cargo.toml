@@ -26,13 +26,6 @@ serde_json = "1.0"
 url = "2.5"
 
 [dependencies.curl]
-# This is 0.4.45 with a patch to Cargo.toml to add a missing feature requirement on the windows-sys
-# crate.
-# TODO(John Sirois): Switch back to mainline when https://github.com/alexcrichton/curl-rust/pull/547
-# is resolved.
-git = "https://github.com/a-scie/curl-rust"
-rev = "9f8c905174d1d3afa675d852f01818f76d21106e"
-
 version = "0.4"
 default-features = false
 features = [

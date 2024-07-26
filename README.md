@@ -2,7 +2,6 @@
 
 [![GitHub](https://img.shields.io/github/license/a-scie/ptex)](LICENSE)
 [![Github Actions CI (x86_64 Linux / MacOS / Windows)](https://github.com/a-scie/ptex/actions/workflows/ci.yml/badge.svg)](https://github.com/a-scie/ptex/actions/workflows/ci.yml)
-[![CircleCI (Linux aarch64)](https://circleci.com/gh/a-scie/ptex.svg?style=svg)](https://circleci.com/gh/a-scie/ptex)
 
 Ship gouged out scies that repair their base on 1st run by fetching missing files.
 

@@ -2,6 +2,7 @@
 
 [![GitHub](https://img.shields.io/github/license/a-scie/ptex)](LICENSE)
 [![Github Actions CI](https://github.com/a-scie/ptex/actions/workflows/ci.yml/badge.svg)](https://github.com/a-scie/ptex/actions/workflows/ci.yml)
+[![Discord](https://img.shields.io/discord/1113502044922322954)](https://scie.app/discord)
 
 Ship gouged out scies that repair their base on 1st run by fetching missing files.
 

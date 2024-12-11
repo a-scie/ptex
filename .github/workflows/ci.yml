@@ -34,10 +34,10 @@ jobs:
             name: Linux x86-64 (musl)
             cross-target: x86_64-unknown-linux-musl
           - os: ubuntu-24.04
-            name: Linux aarch64
+            name: Linux aarch64 (musl)
             cross-target: aarch64-unknown-linux-musl
           - os: ubuntu-24.04
-            name: Linux armv7l
+            name: Linux armv7l (musl)
             cross-target: armv7-unknown-linux-musleabihf
           - os: macos-13
             name: macOS x86-64

@@ -1,5 +1,9 @@
 # Release Notes
 
+## 1.5.0
+
+This release adds support for Linux powerpc64le.
+
 ## 1.4.0
 
 This release adds support for Linux s390x.

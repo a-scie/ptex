@@ -70,14 +70,14 @@ each file it is responsible for materializing comes from. Configuration looks li
   },
   "ptex": {
     "cpython-3.10.8+20221106-x86_64-unknown-linux-gnu-install_only.tar.gz":
-      "https://github.com/indygreg/python-build-standalone/releases/download/20221106/cpython-3.10.8+20221106-x86_64-unknown-linux-gnu-install_only.tar.gz"
+      "https://github.com/astral-sh/python-build-standalone/releases/download/20221106/cpython-3.10.8+20221106-x86_64-unknown-linux-gnu-install_only.tar.gz"
   }
 }
 ```
 
 In this example Linux x86_64 CPython 3.10 scie, the Linux x86_64 `ptex` binary found in the
 [`ptex` Releases](https://github.com/a-scie/ptex/releases) is directly included. The CPython binary
-distribution from [Python Build Standalone](https://github.com/indygreg/python-build-standalone) is
+distribution from [Python Build Standalone](https://github.com/astral-sh/python-build-standalone) is
 not directly included, but instead sourced via `ptex`. This is arranged with a binding command
 configured to run `ptex` passing in the lift manifest itself which `ptex` uses to find the URL of
 the CPython binary distribution when it needs to fetch it.
@@ -86,7 +86,7 @@ This results in a `skinny-scie` that is ~5.6MB. On 1st run on the target host yo
 information about the download updating on stderr:
 ```
 $ rm -rf ~/.nce && time ./skinny-scie
-Downloaded 27555856 of 27555856 bytes (100%) from https://github.com/indygreg/python-build-standalone/releases/download/20221106/cpython-3.10.8+20221106-x86_64-unknown-linux-gnu-install_only.tar.gz
+Downloaded 27555856 of 27555856 bytes (100%) from https://github.com/astral-sh/python-build-standalone/releases/download/20221106/cpython-3.10.8+20221106-x86_64-unknown-linux-gnu-install_only.tar.gz
 Hello World!
 
 real    0m3.888s

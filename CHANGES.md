@@ -1,5 +1,14 @@
 # Release Notes
 
+## 1.5.1
+
+This release updates various dependencies, most notably updating from
+curl 8.10.1 (Spetember 18, 2024) to 8.12.1 (February 13, 2025).
+See:
++ https://curl.se/changes.html
++ https://curl.se/docs/releases.html
++ https://curl.se/docs/vulnerabilities.html
+
 ## 1.5.0
 
 This release adds support for Linux powerpc64le.

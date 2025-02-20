@@ -6,7 +6,7 @@ members = [
 [package]
 name = "ptex"
 version = "1.5.1"
-edition = "2021"
+edition = "2024"
 authors = [
     "John Sirois <john.sirois@gmail.com>",
 ]

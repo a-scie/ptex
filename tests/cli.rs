@@ -38,14 +38,16 @@ fn version() {
 #[test]
 fn fetch_remote_name() {
     let tempdir = tempfile::tempdir().unwrap();
-    assert!(Command::new(PTEX)
-        .args(["-O", URL])
-        .current_dir(&tempdir)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
-        .success());
+    assert!(
+        Command::new(PTEX)
+            .args(["-O", URL])
+            .current_dir(&tempdir)
+            .spawn()
+            .unwrap()
+            .wait()
+            .unwrap()
+            .success()
+    );
     let local_file = tempdir.path().join("scie-jump-linux-aarch64");
     assert!(local_file.is_file());
     assert_fetched_buffer(std::fs::read(local_file).unwrap().as_slice());

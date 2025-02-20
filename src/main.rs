@@ -6,7 +6,7 @@ use std::env;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use curl::easy::{Easy2, Handler, List, NetRc, WriteError};
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use serde::Deserialize;

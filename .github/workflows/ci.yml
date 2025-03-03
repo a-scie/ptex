@@ -56,7 +56,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust Toolchain
-        run: rustup install
+        run: |
+          cat rust-toolchain
+          rustup toolchain install
       - name: Check Formatting
         if: matrix.cross-target == ''
         run: |

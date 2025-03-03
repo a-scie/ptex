@@ -58,6 +58,7 @@ jobs:
       - name: Install Rust Toolchain
         run: |
           cat rust-toolchain
+          rustup self update
           rustup toolchain install
       - name: Check Formatting
         if: matrix.cross-target == ''

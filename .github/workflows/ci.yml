@@ -55,11 +55,6 @@ jobs:
             name: Windows aarch64
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust Toolchain
-        run: |
-          cat rust-toolchain
-          rustup self update
-          rustup toolchain install
       - name: Check Formatting
         if: matrix.cross-target == ''
         run: |
@@ -70,6 +65,9 @@ jobs:
         run: |
           cargo install cross --locked
           docker run --privileged --rm tonistiigi/binfmt --install all
+      - name: Install Rust Toolchain
+        if: matrix.cross-target == ''
+        run: rustup toolchain install 1.85.0
       - name: Lint
         if: matrix.cross-target == ''
         run: cargo clippy --locked --all

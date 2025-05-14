@@ -1,5 +1,10 @@
 # Release Notes
 
+## 1.6.0
+
+This release adds support for `-s` / `--silent` to force fetch progress
+output to be hidden.
+
 ## 1.5.1
 
 This release updates various dependencies, most notably updating from

@@ -42,17 +42,22 @@ fn write(state: &ProgressState, w: &mut dyn std::fmt::Write) {
 }
 
 impl<W: Write> FetchHandler<W> {
-    fn new(url: &str, output: W, show_headers: bool) -> Self {
-        let progress = ProgressBar::new(0);
-        progress.set_prefix(format!("Downloading {url}...{NEWLINE}"));
-        progress.set_style(
-            ProgressStyle::with_template(
-                "{prefix}[{elapsed_precise}] [{bar:30}] {bytes}/{total_bytes} (eta: {eta})",
-            )
-            .unwrap()
-            .with_key("eta", write)
-            .progress_chars("#>-"),
-        );
+    fn new(url: &str, output: W, show_headers: bool, show_progress: bool) -> Self {
+        let progress = if show_progress {
+            let progress = ProgressBar::no_length();
+            progress.set_prefix(format!("Downloading {url}...{NEWLINE}"));
+            progress.set_style(
+                ProgressStyle::with_template(
+                    "{prefix}[{elapsed_precise}] [{bar:30}] {bytes}/{total_bytes} (eta: {eta})",
+                )
+                .expect("The template string is known-good.")
+                .with_key("eta", write)
+                .progress_chars("#>-"),
+            );
+            progress
+        } else {
+            ProgressBar::hidden()
+        };
         Self {
             output,
             progress,
@@ -93,6 +98,7 @@ fn fetch_manifest<R: Read, W: Write>(
     output: W,
     headers: Vec<String>,
     show_headers: bool,
+    show_progress: bool,
 ) -> Result<()> {
     let config = Config::parse(lift_manifest)?;
     let url = config.ptex.get(file_path).with_context(|| {
@@ -101,12 +107,18 @@ fn fetch_manifest<R: Read, W: Write>(
             path = file_path.display()
         )
     })?;
-    fetch(url, output, headers, show_headers)
+    fetch(url, output, headers, show_headers, show_progress)
         .with_context(|| format!("Failed to source file {file}", file = file_path.display()))
 }
 
-fn fetch<W: Write>(url: &str, output: W, headers: Vec<String>, show_headers: bool) -> Result<()> {
-    let mut easy = Easy2::new(FetchHandler::new(url, output, show_headers));
+fn fetch<W: Write>(
+    url: &str,
+    output: W,
+    headers: Vec<String>,
+    show_headers: bool,
+    show_progress: bool,
+) -> Result<()> {
+    let mut easy = Easy2::new(FetchHandler::new(url, output, show_headers, show_progress));
     easy.follow_location(true)
         .context("Failed to configure re-direct following")?;
     easy.fail_on_error(true)
@@ -139,9 +151,11 @@ fn usage(exit_code: i32, program_name: Option<String>) -> ! {
     {bin_name} -V|--version
     {bin_name} -h|--help
     {bin_name}:
-        [-H|--header]* (-D|--dump-header) [lift manifest path] [file name]
+        [-H|--header]* (-D|--dump-header) (-s|--silent)
+        [lift manifest path] [file name]
     {bin_name}:
-        (-O|--remote-name) [-H|--header]* (-D|--dump-header) [URL]
+        (-O|--remote-name) [-H|--header]* (-D|--dump-header)
+        (-s|--silent) [URL]
 
     The `ptex` binary is a statically compiled URL fetcher based on
     libcurl. It supports the HTTP protocol up through HTTP/2, the FTP
@@ -162,6 +176,9 @@ fn usage(exit_code: i32, program_name: Option<String>) -> ! {
     [-H|--header]*     Pass custom header(s) to server.
     (-D|--dump-header) Dump the headers received to stderr. Can also be
                        set via non-empty PTEX_DUMP_HEADERS env var.
+    (-s|--silent)      Turn off printing of fetch progress. By default
+                       progress is printed to stderr only if a terminal
+                       is detected.
     [lift manifest path] [file name]
 
     For use in a scie file source binding. The first argument is the
@@ -169,9 +186,6 @@ fn usage(exit_code: i32, program_name: Option<String>) -> ! {
     name to source. You configure this use in a scie by fully specifying
     file metadata, including size, hash and type and setting the source
     to the name of a binding command that uses `ptex` as its executable.
-
-    -D|--dump-header  Dump the headers received to stderr. Can also be
-                      set via non-empty PTEX_DUMP_HEADERS env var.
 
     The relevant parts of the lift manifest look like so:
 
@@ -222,6 +236,9 @@ fn usage(exit_code: i32, program_name: Option<String>) -> ! {
     [-H|--header]*     Pass custom header(s) to server.
     (-D|--dump-header) Dump the headers received to stderr. Can also be
                        set via non-empty PTEX_DUMP_HEADERS env var.
+    (-s|--silent)      Turn off printing of fetch progress. By default
+                       progress is printed to stderr only if a terminal
+                       is detected.
     [URL]
 
     For use as a fully self-contained curl-like binary. The given URL is
@@ -268,6 +285,7 @@ fn main() {
     let mut program_name = None;
     let mut save_as_remote_name = false;
     let mut show_headers = false;
+    let mut show_progress = true;
     let mut headers = vec![];
     let mut positional_args = vec![];
     let mut args = env::args().enumerate();
@@ -292,6 +310,7 @@ fn main() {
                         usage(1, program_name)
                     }
                 }
+                "-s" | "--silent" => show_progress = false,
                 _ => positional_args.push(arg),
             }
         }
@@ -315,15 +334,16 @@ fn main() {
                 std::io::stdout(),
                 headers,
                 show_headers,
+                show_progress,
             )
             .or_exit()
         }
         [url] => {
             if save_as_remote_name {
                 let file = open_remote_filename(url).or_exit();
-                fetch(url, file, headers, show_headers).or_exit();
+                fetch(url, file, headers, show_headers, show_progress).or_exit();
             } else {
-                fetch(url, std::io::stdout(), headers, show_headers).or_exit();
+                fetch(url, std::io::stdout(), headers, show_headers, show_progress).or_exit();
             }
         }
         _ => {
@@ -368,6 +388,7 @@ mod tests {
             &mut buffer,
             vec![],
             true,
+            true,
         )
         .unwrap();
         assert_fetched_buffer(buffer.as_slice());
@@ -376,7 +397,7 @@ mod tests {
     #[test]
     fn fetch() {
         let mut buffer: Vec<u8> = Vec::new();
-        super::fetch(URL, &mut buffer, vec![], false).unwrap();
+        super::fetch(URL, &mut buffer, vec![], false, true).unwrap();
         assert_fetched_buffer(buffer.as_slice());
     }
 }

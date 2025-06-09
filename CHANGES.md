@@ -1,5 +1,14 @@
 # Release Notes
 
+## 1.6.1
+
+This release updates various dependencies, most notably updating from
+curl 8.12.1 (February 13, 2025) to 8.14.1 (June 4, 2025).
+See:
++ https://curl.se/changes.html
++ https://curl.se/docs/releases.html
++ https://curl.se/docs/vulnerabilities.html
+
 ## 1.6.0
 
 This release adds support for `-s` / `--silent` to force fetch progress
@@ -8,7 +17,7 @@ output to be hidden.
 ## 1.5.1
 
 This release updates various dependencies, most notably updating from
-curl 8.10.1 (Spetember 18, 2024) to 8.12.1 (February 13, 2025).
+curl 8.10.1 (September 18, 2024) to 8.12.1 (February 13, 2025).
 See:
 + https://curl.se/changes.html
 + https://curl.se/docs/releases.html

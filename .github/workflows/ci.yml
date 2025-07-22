@@ -54,6 +54,9 @@ jobs:
             name: Windows aarch64
     steps:
       - uses: actions/checkout@v4
+      - name: Install rustup on Windows ARM
+        if: matrix.os == 'windows-11-arm'
+        uses: actions-rust-lang/setup-rust-toolchain@v1
       - name: Check Formatting
         if: matrix.cross-target == ''
         run: |

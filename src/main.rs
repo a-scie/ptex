@@ -75,10 +75,10 @@ impl<W: Write> Handler for FetchHandler<W> {
     }
 
     fn header(&mut self, data: &[u8]) -> bool {
-        if self.show_headers {
-            if let Ok(header) = std::str::from_utf8(data) {
-                eprint!("{header}");
-            }
+        if self.show_headers
+            && let Ok(header) = std::str::from_utf8(data)
+        {
+            eprint!("{header}");
         }
         true
     }
@@ -315,12 +315,11 @@ fn main() {
             }
         }
     }
-    if !show_headers {
-        if let Some(value) = env::var_os("PTEX_DUMP_HEADERS") {
-            if !value.is_empty() {
-                show_headers = true;
-            }
-        }
+    if !show_headers
+        && let Some(value) = env::var_os("PTEX_DUMP_HEADERS")
+        && !value.is_empty()
+    {
+        show_headers = true;
     }
 
     match &positional_args[..] {

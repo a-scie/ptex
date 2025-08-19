@@ -1,5 +1,9 @@
 # Release Notes
 
+## 1.7.0
+
+This release adds support for Linux riscv64.
+
 ## 1.6.1
 
 This release updates various dependencies, most notably updating from

@@ -61,7 +61,7 @@ jobs:
             cross-target: powerpc64le-unknown-linux-gnu
           - os: ubuntu-24.04
             name: Linux riscv64
-            cross-target: riscv64-unknown-linux-gnu
+            cross-target: riscv64gc-unknown-linux-gnu
           - os: ubuntu-24.04
             name: Linux s390x
             cross-target: s390x-unknown-linux-gnu

@@ -142,10 +142,10 @@ distribution is ~28M:
 ## Building `ptex`
 
 The `ptex` binary is [released](https://github.com/a-scie/ptex/releases) for Linux (x86_64,
-aarch64, armv7l, s390x & powerpc64le), macOS (x86_64 & aarch64) and Windows (x86_64 & aarch64). If
-you'd like to build your own copy, you'll need [Rust installed](https://rustup.rs/) at which point
-you can run `cargo run -p package` and a binary for your current machine will be built in `dist/` 
-along with a sha256 checksum file. For more build options, you can run
-`cargo run -p package -- --help`. On some systems, builds will require `cmake`, `make` and `perl`
-in order to build various `*-sys` crates. If you're missing these, the build failures will point
-you in the right direction with some reading.
+aarch64, armv7l, powerpc64le, riscv64 & s390x), macOS (x86_64 & aarch64) and Windows
+(x86_64 & aarch64). If you'd like to build your own copy, you'll need
+[Rust installed](https://rustup.rs/) at which point you can run `cargo run -p package` and a binary
+for your current machine will be built in `dist/` along with a sha256 checksum file. For more build
+options, you can run `cargo run -p package -- --help`. On some systems, builds will require `cmake`,
+`make` and `perl` in order to build various `*-sys` crates. If you're missing these, the build
+failures will point you in the right direction with some reading.

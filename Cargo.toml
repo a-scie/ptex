@@ -39,7 +39,7 @@ features = [
 
 [dev-dependencies]
 sha2 = "0.10"
-tempfile = "3.21"
+tempfile = "3.22"
 
 [[test]]
 name = "cli"

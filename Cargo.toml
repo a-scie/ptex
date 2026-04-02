@@ -38,7 +38,8 @@ features = [
 ]
 
 [dev-dependencies]
-sha2 = "0.10"
+hex = "0.4"
+sha2 = "0.11"
 tempfile = "3.27"
 
 [[test]]

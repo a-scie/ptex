@@ -365,7 +365,7 @@ mod tests {
         assert_eq!(1205568, buffer.len());
         assert_eq!(
             "937683255e98caf10745a674d7063bd38e9cbeb523b9f8ef4dbe8807abc35382".to_string(),
-            format!("{digest:x}", digest = Sha256::digest(buffer))
+            hex::encode(Sha256::digest(buffer))
         );
     }
 

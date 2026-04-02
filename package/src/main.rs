@@ -1,11 +1,13 @@
 // Copyright 2022 Science project contributors.
 // Licensed under the Apache License, Version 2.0 (see LICENSE).
 
-use std::env;
 use std::fmt::{Display, Formatter};
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::{env, io};
 
 use clap::Parser;
 use proc_exit::{Code, Exit, ExitResult};
@@ -153,14 +155,14 @@ fn main() -> ExitResult {
     let src = output_bin_dir
         .join(BINARY)
         .with_extension(env::consts::EXE_EXTENSION);
-    let mut reader = std::fs::File::open(&src).map_err(|e| {
+    let _reader = std::fs::File::open(&src).map_err(|e| {
         Code::FAILURE.with_message(format!(
             "Failed to open {src} for hashing: {e}",
             src = src.display()
         ))
     })?;
     let mut hasher = Sha256::new();
-    std::io::copy(&mut reader, &mut hasher)
+    digest_path(&src, &mut hasher)
         .map_err(|e| Code::FAILURE.with_message(format!("Failed to digest stream: {e}")))?;
     let digest = hasher.finalize();
 
@@ -187,7 +189,11 @@ fn main() -> ExitResult {
     })?;
 
     let fingerprint_file = dst.with_file_name(format!("{file_name}.sha256"));
-    std::fs::write(&fingerprint_file, format!("{digest:x} *{file_name}\n")).map_err(|e| {
+    std::fs::write(
+        &fingerprint_file,
+        format!("{digest} *{file_name}\n", digest = hex::encode(digest),),
+    )
+    .map_err(|e| {
         Code::FAILURE.with_message(format!(
             "Failed to write fingerprint file {fingerprint_file}: {e}",
             fingerprint_file = fingerprint_file.display()
@@ -199,4 +205,24 @@ fn main() -> ExitResult {
         dst = dst.display()
     );
     Code::SUCCESS.ok()
+}
+
+fn digest_path<D>(path: &Path, digest: &mut D) -> Result<usize, io::Error>
+where
+    D: Digest,
+{
+    let mut size: usize = 0;
+    let mut reader = BufReader::new(File::open(path)?);
+    loop {
+        let amount_read = {
+            let buf = reader.fill_buf()?;
+            if buf.is_empty() {
+                return Ok(size);
+            }
+            digest.update(buf);
+            buf.len()
+        };
+        size += amount_read;
+        reader.consume(amount_read);
+    }
 }

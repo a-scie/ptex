@@ -1,5 +1,14 @@
 # Release Notes
 
+## 1.7.1
+
+This release updates various dependencies, most notably updating from
+curl 8.15.0 (July 16, 2025) to 8.20.0 (April 29, 2026).
+See:
++ https://curl.se/ch/8.20.0.html
++ https://curl.se/docs/releases.html
++ https://curl.se/docs/vulnerabilities.html
+
 ## 1.7.0
 
 This release adds support for Linux riscv64.

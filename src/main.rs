@@ -12,6 +12,8 @@ use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use serde::Deserialize;
 use url::Url;
 
+mod github;
+
 #[derive(Deserialize)]
 struct Config {
     ptex: BTreeMap<PathBuf, String>,
@@ -118,6 +120,9 @@ fn fetch<W: Write>(
     show_headers: bool,
     show_progress: bool,
 ) -> Result<()> {
+    if github::recognizes(url) {
+        return github::fetch(url, output, headers, show_headers, show_progress);
+    }
     let mut easy = Easy2::new(FetchHandler::new(url, output, show_headers, show_progress));
     easy.follow_location(true)
         .context("Failed to configure re-direct following")?;
@@ -163,6 +168,13 @@ fn usage(exit_code: i32, program_name: Option<String>) -> ! {
     from ~/.netrc if available and can perform NTLM authentication. It
     exits with a non-zero status if there was a network or protocol
     error.
+
+    GitHub.com Actions artifact links and release-asset API URLs use
+    PTEX_GITHUB_TOKEN. Other GitHub token variables are not read implicitly.
+    These downloads reject custom headers, ignore ~/.netrc, and dump only
+    status codes. GitHub API credentials never follow storage redirects.
+    Downloaded bytes are unchanged: Actions ZIPs are not automatically
+    unpacked into raw files. See the README for supported URL forms.
 
 {bin_name} -V|--version
 
@@ -267,6 +279,9 @@ impl<T> OrExit<T> for Result<T> {
 }
 
 fn open_remote_filename(url: &str) -> Result<impl Write> {
+    if github::recognizes(url) {
+        github::validate_source(url)?;
+    }
     let parsed_url = Url::parse(url)?;
     let remote_path = PathBuf::from(parsed_url.path());
     let remote_file_name = remote_path

@@ -18,6 +18,44 @@ base filled in, but instead downloaded to the end users machine only if needed. 
 storage space on your servers and the end user's machine as well as bandwidth transferring your
 application scie between them. The `ptex` binary can help you do this.
 
+## Private Google Cloud Storage objects
+
+Use an explicit `gs://bucket/object` URL to fetch an object using Google
+[Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials):
+
+```console
+ptex gs://private-builds/releases/pants.pex > pants.pex
+```
+
+The same URL works in a manifest's string-valued `ptex` map. Credentials are obtained
+inside the native binary using Google's authentication library: no Python or `gcloud`
+installation is needed at download time. Configure `GOOGLE_APPLICATION_CREDENTIALS`,
+use an existing local ADC file (created with `gcloud auth application-default login`),
+or run with an attached service account. ADC credential files are trusted local
+configuration, never part of the artifact manifest. The library handles token refresh
+and its supported workload-identity and impersonated credentials.
+
+The identity needs `storage.objects.get`; ptex requests the read-only Storage scope.
+Credential acquisition has a 30-second deadline. A rejected token or a failed/partial
+download fails without replaying bytes or falling back to anonymous access. Streaming
+output can contain partial bytes after a transfer failure; always check the exit status
+before using an artifact.
+
+Object paths are percent-decoded once, then encoded as a single GCS API object name:
+`a%2Fb` means `a/b`, while `a%252Fb` means the literal `a%2Fb`. Spaces, Unicode and
+literal `+` are supported. Encode literal `%`, `?` and `#` as `%25`, `%3F` and `%23`.
+Query strings, fragments, userinfo, ports and object generations are not supported.
+
+Only `gs://` enables ADC: existing `https://storage.googleapis.com/...` URLs retain
+ordinary HTTPS behavior. GCS requests always use the fixed `storage.googleapis.com`
+HTTPS endpoint, ignore `.netrc`, and reject redirects and caller-supplied auth/host
+headers. `-D` and `PTEX_DUMP_HEADERS` print only HTTP status codes for GCS requests.
+Tokens are never placed in command-line arguments or manifests.
+
+This authenticates object access, not artifact provenance. Continue using scie file
+hashes and immutable release names, and restrict write access to executable artifacts.
+Requester-pays buckets are not supported by this initial implementation.
+
 ## How `ptex` works
 
 The [`scie-jump`](

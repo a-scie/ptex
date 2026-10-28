@@ -12,6 +12,8 @@ use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use serde::Deserialize;
 use url::Url;
 
+mod gcs;
+
 #[derive(Deserialize)]
 struct Config {
     ptex: BTreeMap<PathBuf, String>,
@@ -118,6 +120,9 @@ fn fetch<W: Write>(
     show_headers: bool,
     show_progress: bool,
 ) -> Result<()> {
+    if url.starts_with("gs:") {
+        return gcs::fetch(url, output, headers, show_headers, show_progress);
+    }
     let mut easy = Easy2::new(FetchHandler::new(url, output, show_headers, show_progress));
     easy.follow_location(true)
         .context("Failed to configure re-direct following")?;
@@ -163,6 +168,13 @@ fn usage(exit_code: i32, program_name: Option<String>) -> ! {
     from ~/.netrc if available and can perform NTLM authentication. It
     exits with a non-zero status if there was a network or protocol
     error.
+
+    Explicit gs://bucket/object URLs use Google Application Default
+    Credentials with the read-only Storage scope. The identity needs
+    storage.objects.get permission. These requests ignore ~/.netrc,
+    reject redirects and auth/host header overrides, and dump only
+    HTTP status codes with -D. Credentials stay inside the downloader.
+    Ordinary HTTPS URLs do not automatically acquire Google credentials.
 
 {bin_name} -V|--version
 
